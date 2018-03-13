@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js"></script>
+    <script src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootswatch/4.0.0/materia/bootstrap.min.css" rel="stylesheet" />
+    <style>body{padding-top:40px}</style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div class="card border-light mb-3">
+            <div class="card-header">
+              <i class="fas fa-users"></i> <i class="fas fa-angle-right"></i> <i class="fas fa-users"></i> Google Group Duplicator
+              <div class="float-right">
+                <button type="button" id="refresh" class="btn btn-primary btn-sm"><i class="fas fa-sync"></i></button>
+              </div>
+            </div>
+            <div class="card-body">
+              <form>
+                <div class="form-group">
+                  <fieldset>
+                    <label class="control-label" for="groups"><i class="fas fa-users"></i> Group to Copy From</label>
+                    <select id="groups" class="custom-select">
+                      <option selected>Loading...</option>
+                    </select>
+                  </fieldset>
+                </div>
+                <div class="row text-center" style="padding-bottom:24px">
+                  <div class="col-12">
+                    <i class="fas fa-long-arrow-alt-down fa-3x"></i>
+                  </div>
+                </div>
+                <div class="row">
+                  <div id="newGroupIdContainer" class="form-group col">
+                    <fieldset>
+                      <label class="control-label" for="newGroupId" required><i class="fas fa-envelope"></i> New Group ID</label>
+                      <input id="newGroupId" class="form-control" placeholder="id@yourdomain.com" />
+                    </fieldset>
+                  </div>
+                  <div id="newGroupNameContainer" class="form-group col" >
+                    <fieldset>
+                      <label class="control-label" for="newGroupName" required><i class="fas fa-address-card"></i> New Group Name</label>
+                      <input id="newGroupName" class="form-control" placeholder="Name" />
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div id="newGroupNameContainer" class="form-group col" >
+                    <fieldset>
+                      <label class="control-label" for="newGroupDescription" required><i class="fas fa-pencil-alt"></i> New Group Description</label>
+                      <input id="newGroupDescription" class="form-control" placeholder="Description" />
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <button id="submit" type="submit" class="btn btn-block btn-primary">Duplicate Group</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function() {
+        getGroups();
+        disableSubmit("Invalid Group ID");
+      });
+
+      // the function to update the "groups" dropdown.
+      // happens on load and when the refresh button is pressed.
+      function getGroups() {
+        console.log("Updating all groups...");
+        disableRefresh();
+        $('#groups').find('option').remove().append('<option selected>Refreshing...</option>');
+        google.script.run.withSuccessHandler(updateGroupsDropdown).withFailureHandler(handleError).getAllGroups();
+      }
+
+      // getGroups() has run successfully
+      // this updates the dropdown with all of the groups as choices
+      function updateGroupsDropdown(groups) {
+        $('#groups').find('option').remove();
+        for (var i in groups) {
+          $('#groups').append('<option value="' + groups[i].email + '">' + groups[i].name + ' (' + groups[i].email + ')</option>');
+        }
+        console.log("Updated!");
+        var groupId = $('#groups option:selected').val();
+        getGroupInfo();
+        enableRefresh();
+      }
+
+      // handles all errors that might happen from any of the server-side apps script functions
+      function handleError(error) {
+        $.notify({
+          "icon": "fas fa-exclamation-triangle",
+          "delay": 30000,
+          "message": error
+        },{
+          "type": "danger"
+        });
+        enableSubmit();
+        enableRefresh();
+      }
+
+      // this is what happens when the form is submitted.
+      // disable the buttons, get all of the field values,
+      // then run copyGroup() server-side to create the new group.
+      function copySubmit() {
+        event.preventDefault();
+        disableSubmit('Duplicate Group');
+        disableRefresh();
+        var groupId = $('#groups option:selected').val();
+        var newGroupId = $('#newGroupId').val();
+        var newGroupName = $('#newGroupName').val();
+        var newGroupDescription = $('#newGroupDescription').val();
+        console.log("Creating " + newGroupName + " <" + newGroupId + "> from " + groupId + "...");
+        google.script.run.withSuccessHandler(copySuccessful).withFailureHandler(handleError).copyGroup(groupId, newGroupId, newGroupName, newGroupDescription);
+      }
+
+      // once the above function runs successfully,
+      // this resets the form, sends a "success" notification,
+      // and re-enables the buttons
+      function copySuccessful(newGroup) {
+        console.log("Group created successfully!");
+        $.notify({
+          "icon": "fas fa-thumbs-up",
+          "delay": 30000,
+          "message": "New group created!"
+        },{
+          "type": "success"
+        });
+        enableSubmit();
+        enableRefresh();
+      }
+
+      // every time the group id textbox gets a new update,
+      // check to see if it matches regex for your domain's email address
+      $('#newGroupId').keyup(function() {
+        verifyGroupId();
+      });
+
+      // if the id matches regex, enable the buttons and highlight the input green.
+      // if not, disable and highlight red.
+      function verifyGroupId() {
+        $('#newGroupIdContainer').removeClass('has-success has-danger');
+        var domainEmail = /^[a-zA-Z0-9]+@yourdomain\.com$/;
+        var newGroupId = $('#newGroupId').val();
+        if (domainEmail.test(newGroupId)) {
+          $('#newGroupIdContainer').addClass('has-success');
+          enableSubmit();
+        } else {
+          $('#newGroupIdContainer').addClass('has-danger');
+          disableSubmit("Invalid Group ID");
+        }
+      }
+
+      // presumably, nobody would be using this tool unless they want the new group
+      // to be pretty similar to the old, existing group they're copying from.
+      // when a different group is selected from the dropdown, we want to get get it's settings.
+      // then, we populate the new group's fields in the form with the existing group's info,
+      // to make changing the details trivial.
+      $('#groups').change(function() {
+        getGroupInfo();
+      });
+
+      // when a different group is selected, get it's info...
+      function getGroupInfo() {
+        var groupId = $('#groups option:selected').val();
+        console.log("Getting group info for " + groupId);
+        google.script.run.withSuccessHandler(fillInNewGroupInfo).withFailureHandler(handleError).getGroup(groupId);
+      }
+
+      // ...and fill it into the form.
+      function fillInNewGroupInfo(group) {
+        $('#newGroupId').val(group.email);
+        $('#newGroupName').val(group.name);
+        $('#newGroupDescription').val(group.description);
+        verifyGroupId();
+      }
+
+      //
+      //
+      function disableSubmit(buttonText) {
+        $('#submit').addClass('disabled').html(buttonText).off().click(function(event){event.preventDefault()});
+      }
+
+      function enableSubmit() {
+        $('#submit').removeClass('disabled').html('Duplicate Group').off().click(copySubmit);
+      }
+
+      function disableRefresh() {
+        $('#refresh').addClass('disabled').html('<i class="fas fa-spin fa-sync"></i>').off().click(function(event){event.preventDefault()});
+      }
+
+      function enableRefresh() {
+        $('#refresh').removeClass('disabled').html('<i class="fas fa-sync"></i>').off().click(refresh);
+      }
+      //
+      //
+
+      // the click listener for the refresh
+      function refresh() {
+        if (!$('#refresh').hasClass('disabled')) {
+          getGroups();
+        }
+      }
+    </script>
+
+  </body>
+</html>
