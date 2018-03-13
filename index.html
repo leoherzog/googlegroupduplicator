@@ -150,12 +150,17 @@
         $('#newGroupIdContainer').removeClass('has-success has-danger');
         var domainEmail = /^[a-zA-Z0-9]+@yourdomain\.com$/;
         var newGroupId = $('#newGroupId').val();
-        if (domainEmail.test(newGroupId)) {
-          $('#newGroupIdContainer').addClass('has-success');
-          enableSubmit();
-        } else {
+        // check to see if the new group id exists as a value in any of the existing options in the groups dropdown
+        // if it does, that means that the id already exists in another group
+        if ($('#groups option[value="' + newGroupId + '"]').length > 0) {
+          $('#newGroupIdContainer').addClass('has-danger');
+          disableSubmit("ID Must Be Unique");
+        } else if (!domainEmail.test(newGroupId)) {
           $('#newGroupIdContainer').addClass('has-danger');
           disableSubmit("Invalid Group ID");
+        } else {
+          $('#newGroupIdContainer').addClass('has-success');
+          enableSubmit();
         }
       }
 
