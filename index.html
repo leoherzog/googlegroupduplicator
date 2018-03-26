@@ -53,7 +53,7 @@
                   <div id="newGroupNameContainer" class="form-group col" >
                     <fieldset>
                       <label class="control-label" for="newGroupDescription" required><i class="fas fa-pencil-alt"></i> New Group Description</label>
-                      <input id="newGroupDescription" class="form-control" placeholder="Description" />
+                      <textarea id="newGroupDescription" rows="3" class="form-control" placeholder="Description"></textarea>
                     </fieldset>
                   </div>
                 </div>
@@ -138,35 +138,50 @@
         enableRefresh();
       }
 
-      // every time the group id textbox gets a new update,
+      // every time the textboxes get a new update,
       // check to see if it matches regex for your domain's email address
-      $('#newGroupId').keyup(function() {
-        verifyGroupId();
+      $('#newGroupId, #newGroupDescription').keyup(function() {
+        verify();
       });
 
-      // if the id matches regex, enable the buttons and highlight the input green.
+      // if the id and description are valid, enable the buttons and highlight the input green.
       // if not, disable and highlight red.
-      function verifyGroupId() {
-        $('#newGroupIdContainer').removeClass('has-success has-danger');
-        var domainEmail = /^[a-zA-Z0-9]+@yourdomain\.com$/;
+      function verify() {
+
         var newGroupId = $('#newGroupId').val();
+        $('#newGroupIdContainer').removeClass('has-success has-danger');
+
         // check to see if the new group id exists as a value in any of the existing options in the groups dropdown
         // if it does, that means that the id already exists in another group
         if ($('#groups option[value="' + newGroupId + '"]').length > 0) {
           $('#newGroupIdContainer').addClass('has-danger');
           disableSubmit("ID Must Be Unique");
-        } else if (!domainEmail.test(newGroupId)) {
+          return;
+        }
+        var domainEmail = /^[a-zA-Z0-9]+@yourdomain\.com$/;
+        if (!domainEmail.test(newGroupId)) {
           $('#newGroupIdContainer').addClass('has-danger');
           disableSubmit("Invalid Group ID");
-        } else {
-          $('#newGroupIdContainer').addClass('has-success');
-          enableSubmit();
+          return;
         }
+        $('#newGroupIdContainer').addClass('has-success');
+
+        
+        $('#newDescription').removeClass('has-success has-danger');
+        if ($('#newGroupDescription').val().length >= 4096) {
+          $('#newDescription').addClass('has-danger');
+          disableSubmit("Description is Too Long");
+          return;
+        }
+
+        $('#newDescription').addClass('has-success');
+        enableSubmit();
+
       }
 
       // presumably, nobody would be using this tool unless they want the new group
       // to be pretty similar to the old, existing group they're copying from.
-      // when a different group is selected from the dropdown, we want to get get it's settings.
+      // when a different group is selected from the dropdown, we want to get it's settings.
       // then, we populate the new group's fields in the form with the existing group's info,
       // to make changing the details trivial.
       $('#groups').change(function() {
@@ -185,7 +200,7 @@
         $('#newGroupId').val(group.email);
         $('#newGroupName').val(group.name);
         $('#newGroupDescription').val(group.description);
-        verifyGroupId();
+        verify();
       }
 
       //

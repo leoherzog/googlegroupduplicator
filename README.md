@@ -17,7 +17,7 @@ In order to make our Admin's lives easier, I created this script. It simply crea
 3. Create a new html file with **File** → **New** → **Html file**, name it `index.html`, and copy the code from [`index.html`](https://raw.githubusercontent.com/xd1936/googlegroupduplicator/master/index.html) into it.
 4. Go into **Resources** → **Advanced Google services...**, and turn on the **Admin Directory API** and **Groups Settings API**. Also follow the *Developer Console* link on this same screen and enable access to the **Admin SDK** and **Groups Settings API** for this project ([more information](https://developers.google.com/apps-script/guides/services/advanced)).
 5. Go into the `code.gs` file and change the `domain` variable on `line 3` to be your domain.
-6. Go into the `index.html` file and change the domain placeholder on `line 42`, and the domain regex on `line 151`
+6. Go into the `index.html` file and change the domain placeholder on `line 42`, and the domain regex on `line 161`
 7. Go into **Publish** → **Deploy as web app...**. Choose the level of access that you want to have on the panel (Under **Who has access to the app:**), and click **Deploy**.
 
 You're done! Navigate to that web app URL to see your groups and modify each one's setting.

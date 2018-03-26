@@ -44,7 +44,7 @@ function copyGroup(groupIdToCopyFrom, newGroupId, newGroupName, newGroupDescript
   groupToCopyFromSettings.description = newGroupDescription;
 
   // make a new group
-  var newGroup = AdminDirectory.Groups.insert({"email": newGroupId, "name": newGroupName});
+  var newGroup = AdminDirectory.Groups.insert({"email": newGroupId, "name": newGroupName, "description": newGroupDescription});
   // update the new group's settings with our settings object from the old group
   var newGroupSettings = AdminGroupsSettings.Groups.update(groupToCopyFromSettings, newGroup.email);
 
