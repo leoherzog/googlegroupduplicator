@@ -2,10 +2,10 @@
 <html>
   <head>
     <base target="_top">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js"></script>
-    <script src="//use.fontawesome.com/releases/v5.7.2/js/all.js"></script>
+    <script src="//use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
     <link href="//cdnjs.cloudflare.com/ajax/libs/bootswatch/4.3.1/materia/bootstrap.min.css" rel="stylesheet" />
     <style>body{padding-top:40px}</style>
   </head>
@@ -110,7 +110,7 @@
       // this is what happens when the form is submitted.
       // disable the buttons, get all of the field values,
       // then run copyGroup() server-side to create the new group.
-      function copySubmit() {
+      function copySubmit(event) {
         event.preventDefault();
         disableSubmit('Duplicate Group');
         disableRefresh();
